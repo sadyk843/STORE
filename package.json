@@ -1,0 +1,25 @@
+{
+  "name": "store",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Marketplace platform for gamers",
+  "author": "sadyk843",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sadyk843/STORE.git"
+  },
+  "workspaces": ["server", "client", "shared"],
+  "scripts": {
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "type-check": "tsc --noEmit",
+    "build": "npm run build --workspace=server --workspace=client",
+    "test": "npm run test --workspace=server --workspace=client"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0"
+  }
+}
