@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Виртуальный кошелёк</title>
+  <!-- Font Awesome для иконок -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <!-- Google Font (Inter) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    /* ====== RESET ====== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      padding-top: 70px;
+      padding-bottom: 80px;
+      color: #fff;
+      /* ====== ТВОЙ ДРУГ НА ФОНЕ ====== */
+      background-image: 
+        linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), /* затемнение */
+        url('мой_друг.jpg');  /* имя твоего файла */
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
+    }
+
+    /* ====== ХЕДЕР ====== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 70px;
+      background: rgba(11, 14, 26, 0.7);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .header-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    /* Бургер-иконка */
+    .burger {
+      cursor: pointer;
+      width: 28px;
+      height: 22px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s ease;
+    }
+    .burger span {
+      display: block;
+      height: 3px;
+      background: #c4b5fd;
+      border-radius: 3px;
+      transition: all 0.3s ease;
+    }
+    .burger.active span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 6px);
+      background: #a78bfa;
+    }
+    .burger.active span:nth-child(2) {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    .burger.active span:nth-child(3) {
+      transform: rotate(-45deg) translate(6px, -6px);
+      background: #a78bfa;
+    }
+
+    /* ====== ВЫПАДАЮЩЕЕ МЕНЮ ====== */
+    .dropdown-menu {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      right: 0;
+      background: rgba(11, 14, 26, 0.85);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      padding: 24px 28px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      transform: translateY(-120%);
+      transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 999;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .dropdown-menu.open {
+      transform: translateY(0);
+    }
+    .dropdown-menu ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    .dropdown-menu ul li {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: color 0.2s;
+      cursor: default;
+    }
+    .dropdown-menu ul li:last-child {
+      border-bottom: none;
+    }
+    .dropdown-menu ul li .icon {
+      font-size: 1.4rem;
+      width: 32px;
+      text-align: center;
+      color: #a78bfa;
+    }
+    .telegram-badge {
+      background: #3b82f6;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 600;
+      padding: 3px 12px;
+      border-radius: 30px;
+      margin-left: auto;
+      letter-spacing: 0.3px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    }
+
+    /* ====== ОСНОВНОЙ КОНТЕНТ ====== */
+    .content {
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 0 18px;
+    }
+
+    /* ====== КАРТОЧКИ (Glass) ====== */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 28px;
+      padding: 24px 20px;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+      margin-bottom: 24px;
+    }
+    .glass-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+      border-color: rgba(167, 139, 250, 0.3);
+    }
+
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #c4b5fd, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    .card-subtitle {
+      color: rgba(255, 255, 255, 0.5);
+      font-weight: 400;
+      font-size: 0.9rem;
+    }
+
+    /* ====== БАЛАНС ====== */
+    .balance-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 18px 0 22px;
+    }
+    .balance-item {
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 16px;
+      padding: 14px 5px;
+      text-align: center;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.2s;
+    }
+    .balance-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .balance-item .label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+    .balance-item .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+    .value.green { color: #34d399; }
+    .value.orange { color: #fbbf24; }
+    .value.purple { color: #a78bfa; }
+
+    /* ====== ПОЛЕ ВВОДА ====== */
+    .form-control {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 1rem;
+      color: #fff;
+      transition: all 0.3s;
+      width: 100%;
+      outline: none;
+      font-weight: 500;
+    }
+    .form-control:focus {
+      border-color: #a78bfa;
+      box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2);
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .form-control::placeholder {
+      color: rgba(255, 255, 255, 0.25);
+    }
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+
+    /* ====== КНОПКИ ====== */
+    .btn {
+      border: none;
+      border-radius: 16px;
+      padding: 12px 0;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-color: transparent;
+      color: #fff;
+    }
+    .btn-success:hover {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      border-color: transparent;
+      color: #fff;
+    }
+    .btn-warning:hover {
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.25);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #d1d5db;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      border-color: transparent;
+      color: #fff;
+    }
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #f87171, #ef4444);
+      box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-outline-primary {
+      background: transparent;
+      border: 1px solid rgba(167, 139, 250, 0.4);
+      color: #a78bfa;
+    }
+    .btn-outline-primary:hover {
+      background: rgba(167, 139, 250, 0.15);
+      border-color: #a78bfa;
+      box-shadow: 0 8px 24px rgba(167, 139, 250, 0.15);
+    }
+
+    /* ====== СООБЩЕНИЯ ====== */
+    #message {
+      margin-top: 16px;
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      display: none;
+      font-weight: 500;
+      color: #e5e7eb;
+      transition: all 0.3s;
+    }
+    #message.alert-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+    #message.alert-info {
+      background: rgba(167, 139, 250, 0.12);
+      border-color: rgba(167, 139, 250, 0.2);
+      color: #c4b5fd;
+    }
+
+    /* ====== НИЖНИЙ ТАБ-БАР ====== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: rgba(11, 14, 26, 0.7);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      z-index: 1000;
+      padding: 0 12px;
+    }
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      font-size: 0.7rem;
+      color: rgba(255, 255, 255, 0.3);
+      cursor: pointer;
+      transition: all 0.25s ease;
+      padding: 4px 12px;
+      border-radius: 16px;
+      background: none;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-weight: 500;
+      gap: 2px;
+    }
+    .tab-item .tab-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+      transition: transform 0.3s;
+    }
+    .tab-item .tab-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.3px;
+    }
+    .tab-item.active {
+      color: #a78bfa;
+    }
+    .tab-item.active .tab-icon {
+      transform: scale(1.15);
+      text-shadow: 0 0 16px rgba(167, 139, 250, 0.4);
+    }
+    .tab-item:hover {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    /* ====== СТРАНИЦЫ ====== */
+    .page {
+      display: none;
+      animation: fadeSlide 0.35s ease;
+    }
+    .page.active {
+      display: block;
+    }
+
+    @keyframes fadeSlide {
+      0% { opacity: 0; transform: translateY(14px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ====== ИСТОРИЯ ====== */
+    .history-table {
+      width: 100%;
+      font-size: 0.85rem;
+      border-collapse: collapse;
+    }
+    .history-table th {
+      text-align: left;
+      padding: 10px 6px;
+      color: rgba(255, 255, 255, 0.4);
+      font-weight: 600;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .history-table td {
+      padding: 10px 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: #e5e7eb;
+    }
+    .history-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 12px;
+      border-radius: 30px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .badge-deposit { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+    .badge-freeze { background: rgba(251, 191, 36, 0.2); color: #fbbf24; }
+    .badge-release { background: rgba(156, 163, 175, 0.2); color: #9ca3af; }
+    .badge-capture { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    /* ====== АДАПТИВ ====== */
+    @media (max-width: 480px) {
+      .balance-grid { gap: 6px; }
+      .balance-item .value { font-size: 1.3rem; }
+      .header-title { font-size: 1.1rem; }
+      .glass-card { padding: 18px 14px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ХЕДЕР -->
+<header class="header">
+  <div class="burger" id="burgerBtn" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+  <div class="header-title">₿ CoinVault</div>
+  <div style="width:28px;"></div>
+</header>
+
+<!-- БУРГЕР-МЕНЮ -->
+<div class="dropdown-menu" id="dropdownMenu">
+  <ul>
+    <li><span class="icon"><i class="fas fa-user"></i></span> Профиль</li>
+    <li><span class="icon"><i class="fas fa-wallet"></i></span> Кошелёк</li>
+    <li><span class="icon"><i class="fas fa-clock-rotate-left"></i></span> История</li>
+    <li><span class="icon"><i class="fas fa-sliders-h"></i></span> Настройки</li>
+    <li>
+      <span class="icon"><i class="fab fa-telegram-plane"></i></span> Верификация Telegram
+      <span class="telegram-badge"><i class="fas fa-check-circle" style="margin-right:4px;"></i>Подтверждено</span>
+    </li>
+  </ul>
+</div>
+
+<!-- КОНТЕНТ -->
+<div class="content">
+
+  <!-- СТРАНИЦА КОШЕЛЬКА -->
+  <div id="pageWallet" class="page active">
+    <div class="glass-card">
+      <div class="card-title"><i class="fas fa-wallet" style="margin-right:10px;"></i>Мой кошелёк</div>
+      <div class="card-subtitle">Управляй средствами в один клик</div>
+
+      <div class="balance-grid">
+        <div class="balance-item">
+          <div class="label">Доступно</div>
+          <div class="value green" id="available">0</div>
+        </div>
+        <div class="balance-item">
+          <div class="label">Заморожено</div>
+          <div class="value orange" id="frozen">0</div>
+        </div>
+        <div class="balance-item">
+          <div class="label">Итого</div>
+          <div class="value purple" id="total">0</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <label for="amountInput"><i class="fas fa-coins" style="margin-right:6px;"></i>Сумма</label>
+        <input type="number" id="amountInput" class="form-control" placeholder="Введите сумму" value="100" />
+      </div>
+
+      <div class="row g-2" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px;">
+        <button class="btn btn-success" id="depositBtn"><i class="fas fa-arrow-up"></i> Пополнить</button>
+        <button class="btn btn-warning" id="freezeBtn"><i class="fas fa-snowflake"></i> Заморозить</button>
+        <button class="btn btn-secondary" id="releaseBtn"><i class="fas fa-undo"></i> Разморозить</button>
+        <button class="btn btn-danger" id="captureBtn"><i class="fas fa-trash"></i> Списать</button>
+      </div>
+
+      <button class="btn btn-outline-primary" id="refreshBtn"><i class="fas fa-sync-alt" style="margin-right:8px;"></i>Обновить баланс</button>
+      <div id="message" class="alert"></div>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА ИСТОРИИ -->
+  <div id="pageHistory" class="page">
+    <div class="glass-card">
+      <div class="card-title"><i class="fas fa-clock-rotate-left" style="margin-right:10px;"></i>История</div>
+      <div id="historyContainer">
+        <p style="color:rgba(255,255,255,0.4);">Загрузка...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА НАСТРОЕК -->
+  <div id="pageSettings" class="page">
+    <div class="glass-card">
+      <div class="card-title"><i class="fas fa-sliders-h" style="margin-right:10px;"></i>Настройки</div>
+      <p style="color:rgba(255,255,255,0.4);">Здесь будут настройки (пока пусто).</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- НИЖНИЙ ТАБ-БАР -->
+<nav class="bottom-nav">
+  <button class="tab-item active" data-page="pageWallet">
+    <span class="tab-icon"><i class="fas fa-wallet"></i></span>
+    <span class="tab-label">Кошелёк</span>
+  </button>
+  <button class="tab-item" data-page="pageHistory">
+    <span class="tab-icon"><i class="fas fa-clock-rotate-left"></i></span>
+    <span class="tab-label">История</span>
+  </button>
+  <button class="tab-item" data-page="pageSettings">
+    <span class="tab-icon"><i class="fas fa-sliders-h"></i></span>
+    <span class="tab-label">Настройки</span>
+  </button>
+</nav>
+
+<!-- СКРИПТЫ -->
+<script>
+  // ====== БУРГЕР ======
+  function toggleMenu() {
+    document.getElementById('burgerBtn').classList.toggle('active');
+    document.getElementById('dropdownMenu').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    const menu = document.getElementById('dropdownMenu');
+    const burger = document.getElementById('burgerBtn');
+    if (!menu.contains(e.target) && !burger.contains(e.target) && menu.classList.contains('open')) {
+      menu.classList.remove('open');
+      burger.classList.remove('active');
+    }
+  });
+
+  // ====== ПЕРЕКЛЮЧЕНИЕ ТАБОВ ======
+  const tabButtons = document.querySelectorAll('.tab-item');
+  const pages = {
+    pageWallet: document.getElementById('pageWallet'),
+    pageHistory: document.getElementById('pageHistory'),
+    pageSettings: document.getElementById('pageSettings'),
+  };
+
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', function() {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      Object.values(pages).forEach(p => p.classList.remove('active'));
+      const pageId = this.dataset.page;
+      pages[pageId].classList.add('active');
+      if (pageId === 'pageHistory') {
+        loadHistory();
+      }
+    });
+  });
+
+  // ====== ЛОГИКА КОШЕЛЬКА ======
+  const USER_ID = 1;
+  const availableEl = document.getElementById('available');
+  const frozenEl = document.getElementById('frozen');
+  const totalEl = document.getElementById('total');
+  const amountInput = document.getElementById('amountInput');
+  const messageEl = document.getElementById('message');
+
+  function showMessage(text, isError = false) {
+    messageEl.textContent = text;
+    messageEl.className = `alert ${isError ? 'alert-danger' : 'alert-info'}`;
+    messageEl.style.display = 'block';
+    setTimeout(() => { messageEl.style.display = 'none'; }, 5000);
+  }
+
+  async function apiCall(endpoint, params = {}) {
+    let url = endpoint + '?userId=' + USER_ID;
+    for (let key in params) {
+      if (params[key] !== undefined && params[key] !== null) {
+        url += '&' + key + '=' + encodeURIComponent(params[key]);
+      }
+    }
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      const err = await resp.json();
+      throw new Error(err.error || 'Ошибка запроса');
+    }
+    return resp.json();
+  }
+
+  async function updateBalance() {
+    try {
+      const data = await apiCall('/balance');
+      availableEl.textContent = data.available;
+      frozenEl.textContent = data.frozen;
+      totalEl.textContent = data.total;
+      showMessage('Баланс обновлён ✅');
+    } catch (err) {
+      showMessage(err.message, true);
+    }
+  }
+
+  async function deposit() {
+    const amount = parseFloat(amountInput.value);
+    if (!amount || amount <= 0) {
+      showMessage('Введите положительную сумму', true);
+      return;
+    }
+    try {
+      await apiCall('/deposit', { amount });
+      await updateBalance();
+      showMessage(`✅ Пополнено на ${amount}`);
+    } catch (err) {
+      showMessage(err.message, true);
+    }
+  }
+
+  async function freeze() {
+    const amount = parseFloat(amountInput.value);
+    if (!amount || amount <= 0) {
+      showMessage('Введите положительную сумму', true);
+      return;
+    }
+    try {
+      const data = await apiCall('/freeze', { amount });
+      await updateBalance();
+      showMessage(`❄️ Заморожено ${amount} (Hold ID: ${data.holdId})`);
+    } catch (err) {
+      showMessage(err.message, true);
+    }
+  }
+
+  async function release() {
+    const holdId = prompt('Введите Hold ID для разморозки:');
+    if (!holdId) return;
+    try {
+      await apiCall('/release', { holdId });
+      await updateBalance();
+      showMessage(`↩️ Разморозка выполнена`);
+    } catch (err) {
+      showMessage(err.message, true);
+    }
+  }
+
+  async function capture() {
+    const holdId = prompt('Введите Hold ID для списания:');
+    if (!holdId) return;
+    try {
+      await apiCall('/capture', { holdId });
+      await updateBalance();
+      showMessage(`⛔ Списание выполнено`);
+    } catch (err) {
+      showMessage(err.message, true);
+    }
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', updateBalance);
+  document.getElementById('depositBtn').addEventListener('click', deposit);
+  document.getElementById('freezeBtn').addEventListener('click', freeze);
+  document.getElementById('releaseBtn').addEventListener('click', release);
+  document.getElementById('captureBtn').addEventListener('click', capture);
+
+  // ====== ИСТОРИЯ ======
+  async function loadHistory() {
+    const container = document.getElementById('historyContainer');
+    try {
+      const transactions = await apiCall('/history');
+      if (!transactions || transactions.length === 0) {
+        container.innerHTML = '<p style="color:rgba(255,255,255,0.4);">История пуста. Совершите операции.</p>';
+        return;
+      }
+      transactions.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      let html = `<table class="history-table"><thead><tr><th>Дата</th><th>Тип</th><th>Сумма</th><th>Описание</th></tr></thead><tbody>`;
+      transactions.forEach(tx => {
+        const date = new Date(tx.timestamp).toLocaleString('ru-RU');
+        const typeMap = { deposit: 'Пополнение', freeze: 'Заморозка', release: 'Разморозка', capture: 'Списание' };
+        const badgeClass = `badge-${tx.type}`;
+        html += `<tr>
+          <td>${date}</td>
+          <td><span class="badge ${badgeClass}">${typeMap[tx.type]}</span></td>
+          <td>${tx.amount}</td>
+          <td>${tx.description}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML = `<p style="color:#f87171;">Ошибка загрузки: ${err.message}</p>`;
+    }
+  }
+
+  updateBalance();
+</script>
+</body>
+</html>
